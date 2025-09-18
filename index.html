@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P.H.A.N.I.X - Forensic Investigation Expert Suite by Phaneendhar Nittala</title> 
+    <meta name="description" content="P.H.A.N.I.X is a free forensic investigation expert suite created by Phaneendhar Nittala. This powerful, client-side tool for digital forensics lets you analyze files, find hidden data, and investigate logs securely in your browser.">
+    <meta name="keywords" content="Phaneendhar Nittala, forensic investigation expert, Phaneendhar's Investigation eXpert, PHANIX, forensic tools, free forensic suite, digital forensics, online forensic analysis, file integrity check, hash generator, SHA256 checker, file comparison tool, EXIF metadata viewer, image metadata extraction, steganography detector, hidden data finder, password strength checker, strong password generator, network log analyzer, cyber forensics, digital evidence analysis, security investigation, forensic application, open source forensic tools, digital investigation toolkit">    
+    <meta name="google-site-verification" content="IXwGN6cqjcXSTspckCSqspttGgtLi37GKtr9n6fCaFY" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><defs><linearGradient id='g' x1='0' y1='0.5' x2='1' y2='0.5'><stop offset='0%25' stop-color='%2300f0ff'/><stop offset='100%25' stop-color='%236a00ff'/></linearGradient></defs><path fill='rgba(14,16,26,0.6)' stroke='url(%23g)' stroke-width='8' d='M0,4 V116 H40 V72 H72 C98.5,72 116,56.5 116,38 C116,19.5 98.5,4 72,4 Z M40,24 V52 H72 C85,52 92,46 92,38 C92,30 85,24 72,24 Z'/></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/exifreader@4.13.0/dist/exif-reader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "P.H.A.N.I.X - Forensic Investigation eXpert Suite",
+      "description": "P.H.A.N.I.X is a free forensic investigation expert suite created by Phaneendhar Nittala. This powerful, client-side tool for digital forensics lets you analyze files, find hidden data, and investigate logs securely in your browser.",
+      "applicationCategory": "SecurityApplication",
+      "operatingSystem": "Any (Web Browser)",
+      "author": {
+        "@type": "Person",
+        "name": "Phaneendhar Nittala"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "keywords": "PHANIX, forensic investigation expert, Phaneendhar Nittala, digital investigation, file analysis, metadata, steganography, client-side, privacy"
+    }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- NEW: Top Right Creator Info Popout -->
+    <div id="creator-popout">
+        <div class="creator-popout-content">
+            <div class="creator-profile">
+                <div class="creator-avatar">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="creator-info">
+                    <h4>Phaneendhar Nittala</h4>
+                    <p class="creator-role">Developer & Forensic Science Graduate</p>
+                    <p class="creator-education">B.Sc. Forensic Science</p>
+                    <p class="creator-university">Centurion University of Technology and Management (Andhra Pradesh)</p>
+                </div>
+                <div class="creator-socials">
+                    <a href="mailto:nittalaphaneendhar@gmail.com" title="Email" class="social-link">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                    <a href="https://www.instagram.com/phani.49" title="Instagram Profile" class="social-link" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader" id="loader">
+      <div class="loader__orb" aria-hidden="true"></div>
+      <div class="loader__text">Loading P.H.A.N.I.X…</div>
+    </div>
+
+    <header class="header">
+      <div class="nav">
+        <a href="#" aria-label="PHANIX Home">
+          <div class="shine" style="border-radius: 16px;">
+            <svg
+              class="phanix-logo"
+              width="240" height="160" viewBox="0 0 240 160"
+              role="img" aria-labelledby="logoTitle logoDesc"
+              xmlns="http://www.w3.org/2000/svg">
+              <title id="logoTitle">P.H.A.N.I.X. Logo</title>
+              <desc id="logoDesc">Futuristic, geometric letter P with a glowing neon and circuit board texture.</desc>
+            
+              <defs>
+                <!-- New cyberpunk-inspired color gradient -->
+                <linearGradient id="g-neon" x1="0" y1="0.5" x2="1" y2="0.5">
+                  <stop offset="0%" stop-color="#00f0ff"/>
+                  <stop offset="100%" stop-color="#6a00ff"/>
+                </linearGradient>
+
+                <linearGradient id="g-reflect" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="white" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                </linearGradient>
+
+                <!-- Enhanced glow for a more vibrant neon effect -->
+                <filter id="f-glow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+
+                <linearGradient id="g-glass" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.35"/>
+                  <stop offset="60%" stop-color="#FFFFFF" stop-opacity="0.06"/>
+                  <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+                </linearGradient>
+
+                <!-- New subtle circuit board pattern -->
+                <pattern id="p-circuit" patternUnits="userSpaceOnUse" width="32" height="32">
+                    <path d="M 0 12 H 8 V 4 H 16 V 12 H 24 V 20 H 16 V 28 H 8 V 20 H 0 Z M 32 4 H 24 M 32 28 H 24" stroke="rgba(106, 227, 255, 0.15)" stroke-width="1.5" fill="none"/>
+                </pattern>
+
+                <mask id="m-glass">
+                  <rect x="0" y="0" width="240" height="160" fill="black"/>
+                  <rect x="40" y="16" width="160" height="50" rx="10" fill="white"/>
+                </mask>
+              </defs>
+
+              <rect x="8" y="8" width="224" height="144" rx="16" fill="rgba(10,12,20,0.75)" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+
+              <g transform="translate(48,24)" opacity="0.8">
+                <path d="M0,0 V112 H40 V68 H72 C98.5,68 116,52.5 116,34 C116,15.5 98.5,0 72,0 Z M40,20 V48 H72 C85,48 92,42 92,34 C92,26 85,20 72,20 Z" fill="url(#g-neon)" filter="url(#f-glow)" opacity="0.4"/>
+              </g>
+              <g transform="translate(48,24)">
+                <path d="M0,0 V112 H40 V68 H72 C98.5,68 116,52.5 116,34 C116,15.5 98.5,0 72,0 Z M40,20 V48 H72 C85,48 92,42 92,34 C92,26 85,20 72,20 Z" fill="rgba(14,16,26,0.6)" stroke="url(#g-neon)" stroke-width="3" filter="url(#f-glow)"/>
+                <path d="M0,0 V112 H40 V68 H72 C98.5,68 116,52.5 116,34 C116,15.5 98.5,0 72,0 Z M40,20 V48 H72 C85,48 92,42 92,34 C92,26 85,20 72,20 Z" fill="url(#p-circuit)"/>
+                <path d="M0,0 V112 H40 V68 H72 C98.5,68 116,52.5 116,34 C116,15.5 98.5,0 72,0 Z M40,20 V48 H72 C85,48 92,42 92,34 C92,26 85,20 72,20 Z" fill="url(#g-glass)" mask="url(#m-glass)"/>
+              </g>
+              <g transform="translate(48,24) scale(1,-1) translate(0,-152)" opacity="0.3">
+                <path d="M0,0 V112 H40 V68 H72 C98.5,68 116,52.5 116,34 C116,15.5 98.5,0 72,0 Z M40,20 V48 H72 C85,48 92,42 92,34 C92,26 85,20 72,20 Z" fill="url(#g-reflect)"/>
+              </g>
+              <g font-family="Space Grotesk, Inter, system-ui" font-weight="700" font-size="20" letter-spacing="2" fill="url(#g-neon)">
+                <text x="120" y="116" text-anchor="middle">P H A N I X</text>
+              </g>
+            </svg>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <main>
+        <section class="section hero" id="home">
+            <div class="hero-background">
+                <div class="aurora"></div>
+                <div class="grid" id="grid"></div>
+                <div class="particles"></div>
+            </div>
+            <div class="hero-content">
+                <h1 class="hero-title">P.H.A.N.I.X</h1>
+                <p class="hero-full-form">Phaneendhar’s Investigation eXpert</p>
+                <p class="hero-subtitle">A powerful, client-side digital forensics suite. Your evidence stays with you.</p>
+                <div class="hero-cta">
+                    <button id="hero-begin-btn" class="btn btn-primary">Begin Analysis</button>
+                    <button id="hero-guide-btn" class="btn btn-secondary">Open Guide</button>
+                </div>
+            </div>
+        </section>
+        <div class="container">
+            <div class="main-layout">
+                <section class="tool-section">
+                <div class="tool-navigator" style="display: none;">
+                    <ul class="navigator-list">
+                        <li><a href="#integrity-card" class="active"><i class="fas fa-shield-virus"></i> Integrity</a></li>
+                        <li><a href="#comparison-card"><i class="fas fa-exchange-alt"></i> Compare</a></li>
+                        <li><a href="#metadata-card"><i class="fas fa-camera-retro"></i> Metadata</a></li>
+                        <li><a href="#stego-card"><i class="fas fa-eye-slash"></i> Steganography</a></li>
+                        <li><a href="#password-card"><i class="fas fa-key"></i> Password</a></li>
+                        <li><a href="#network-card"><i class="fas fa-network-wired"></i> Network</a></li>
+                    </ul>
+                </div>
+                <div class="tool-grid">
+                    <!-- File Integrity & Threat Scanner Card -->
+                    <div id="integrity-card" class="tool-card" style="--card-index: 2;">
+                        <div class="card-loader">
+                            <div class="loading-spinner"></div>
+                            <span>Processing...</span>
+                            <div class="progress-bar"><div class="progress-bar-inner"></div></div>
+                        </div>
+                        <div class="tool-card-content">
+                            <h2><i class="fas fa-shield-virus" aria-hidden="true"></i> File Integrity Scanner</h2>
+                            <div class="input-group">
+                                <label for="file-upload">Select File for Analysis</label>
+                                <input type="file" id="file-upload">
+                            </div>
+                            <div class="btn-group">
+                                <button data-action="run-integrity-scan"><i class="fas fa-broadcast-tower"></i> Full Scan</button>
+                                <button id="find-carve-btn" class="secondary" data-action="run-carve" disabled><i class="fas fa-magic"></i> Find & Carve</button>
+                                <button class="secondary" data-action="clear-tool-state" data-card="integrity-card"><i class="fas fa-times-circle"></i> Clear</button>
+                            </div>
+                            <div class="ai-first-look" id="integrity-ai-look"></div>
+                            <div id="hash-output" class="output">Select a file and click "Full Scan".</div>
+                            <div id="carve-output" class="output" style="margin-top: 1rem; display: none;"></div>
+                            <div id="hex-viewer-output" class="output hex-viewer" style="margin-top: 1rem; display: none; max-height: 300px; overflow-y: auto;"></div>
+                            <canvas id="entropy-chart" height="100" style="margin-top: 1rem; display: none;"></canvas>
+                            <canvas id="byte-plot-chart" height="100" style="margin-top: 1rem; display: none;"></canvas>
+                                </div>
+                            </div>
+                    
+                    <!-- File Comparison Tool -->
+                    <div id="comparison-card" class="tool-card" style="--card-index: 3;">
+                        <div class="card-loader">
+                            <div class="loading-spinner"></div>
+                            <span>Comparing...</span>
+                            <div class="progress-bar"><div class="progress-bar-inner"></div></div>
+                        </div>
+                        <div class="tool-card-content">
+                            <h2><i class="fas fa-exchange-alt" aria-hidden="true"></i> File Comparison Tool</h2>
+                            <div class="input-group">
+                                <label for="file-compare-1">Original File</label>
+                                <input type="file" id="file-compare-1">
+                            </div>
+                            <div class="input-group">
+                                <label for="file-compare-2">Comparison File</label>
+                                <input type="file" id="file-compare-2">
+                            </div>
+                            <div class="btn-group">
+                                <button data-action="run-comparison"><i class="fas fa-equals"></i> Compare Files</button>
+                                <button class="secondary" data-action="clear-tool-state" data-card="comparison-card"><i class="fas fa-times-circle"></i> Clear</button>
+                            </div>
+                            
+                            <div id="comparison-output" class="output">Select two files and click "Compare Files".</div>
+                            <canvas id="diff-map-canvas" height="50" style="margin-top: 1rem; display: none; border: 1px solid var(--border-color); border-radius: 0.5rem;"></canvas>
+                            <div id="hex-diff-output" class="output hex-viewer" style="margin-top: 1rem; display: none; max-height: 300px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Metadata Analyzer Card -->
+                    <div id="metadata-card" class="tool-card" style="--card-index: 3;">
+                        <div class="card-loader"><div class="loading-spinner"></div><span>Analyzing...</span></div>
+                        <div class="tool-card-content">
+                            <h2><i class="fas fa-camera-retro"></i> Metadata Analyzer</h2>
+                            <div class="input-group">
+                                <label for="photo-upload">Select Image/File</label>
+                                <input type="file" id="photo-upload" accept="image/*,video/*,.pdf,.doc,.docx">
+                            </div>
+                            <div class="btn-group">
+                                <button data-action="run-metadata"><i class="fas fa-search-dollar"></i> Analyze Metadata</button>
+                                <button id="meta-ai-btn" class="secondary" data-action="get-metadata-insights" style="display: none;">✨ Get AI Insights</button>
+                                <button class="secondary" data-action="clear-tool-state" data-card="metadata-card"><i class="fas fa-times-circle"></i> Clear</button>
+                            </div>
+                            <div class="ai-first-look" id="metadata-ai-look"></div>
+                            <div id="metadata-output" class="output">Select a file and click "Analyze Metadata".</div>
+                            <div id="map-container" style="height: 200px; margin-top: 1rem; border-radius: 0.5rem; display: none; z-index: 1;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Steganography Analyzer Card -->
+                    <div id="stego-card" class="tool-card" style="--card-index: 4;">
+                        <div class="card-loader"><div class="loading-spinner"></div><span>Scanning...</span></div>
+                        <div class="tool-card-content">
+                            <h2><i class="fas fa-eye-slash"></i> Steganography Analyzer</h2>
+                             <div class="input-group">
+                                <label for="steg-file">Upload Image (PNG recommended)</label>
+                                <input type="file" id="steg-file" accept="image/png, image/bmp, image/jpeg">
+                            </div>
+                            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                                <div class="input-group" style="flex: 1;">
+                                    <label for="steg-channel">Channel</label>
+                                    <select id="steg-channel">
+                                        <option value="0">Red</option>
+                                        <option value="1">Green</option>
+                                        <option value="2">Blue</option>
+                                        <option value="3" selected>Alpha</option>
+                                    </select>
+                                </div>
+                                <div class="input-group" style="flex: 1;">
+                                    <label for="steg-bit-plane">Bit Plane</label>
+                                    <select id="steg-bit-plane">
+                                        <option value="0">LSB (0)</option> <option value="1">1</option> <option value="2">2</option> <option value="3">3</option>
+                                        <option value="4">4</option> <option value="5">5</option> <option value="6">6</option> <option value="7">MSB (7)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button data-action="run-stego"><i class="fas fa-search-plus"></i> Analyze Bit Plane</button>
+                                <button class="secondary" data-action="clear-tool-state" data-card="stego-card"><i class="fas fa-times-circle"></i> Clear</button>
+                            </div>
+                            <div id="steg-output" class="output">Select an image and click "Analyze Bit Plane".</div>
+                            <canvas id="steg-preview-canvas" style="margin-top: 1rem; display: none; max-width: 100%; border: 1px solid var(--border-color); border-radius: 0.5rem;"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Password Strength Card -->
+                     <div id="password-card" class="tool-card" style="--card-index: 5;">
+                        <div class="card-loader"><div class="loading-spinner"></div><span>Analyzing...</span></div>
+                        <div class="tool-card-content">
+                            <h2><i class="fas fa-key"></i> Password Audit</h2>
+                            <div class="input-group">
+                                <label for="password-input">Enter Password</label>
+                                <input type="password" id="password-input" placeholder="Enter password for full analysis...">
+                            </div>
+                            <button data-action="run-password" style="width: 100%; margin-bottom: 1.5rem;"><i class="fas fa-bolt"></i> Full Analysis</button>
+                            <div id="password-strength-visual" style="margin-bottom: 1rem;">
+                                <div class="strength-bar-container">
+                                    <div id="strength-bar-main" class="strength-bar"></div>
+                                </div>
+                                <div id="strength-text" style="font-size: 0.8rem; text-align: right; margin-top: 0.25rem; color: var(--text-secondary);"></div>
+                            </div>
+                            <div id="password-output" class="output" style="min-height: 0;">Enter a password and click "Full Analysis".</div>
+                            <div class="btn-group">
+                                <button class="secondary" data-action="clear-tool-state" data-card="password-card"><i class="fas fa-times-circle"></i> Clear</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Network Log Analyzer Card -->
+                    <div id="network-card" class="tool-card" style="--card-index: 6;">
+                        <div class="card-loader"><div class="loading-spinner"></div><span>Analyzing...</span></div>
+                        <div class="tool-card-content">
+                            <h2><i class="fas fa-network-wired"></i> Advanced Network Log Analyzer</h2>
+                            <div class="input-group">
+                                <label for="network-input">Paste System or Network Logs</label>
+                                <textarea id="network-input" placeholder="Paste logs (e.g., auth.log, firewall, web server) here..."></textarea>
+                            </div>
+                            <div class="input-group">
+                                <label for="ip-watchlist">IP Watchlist (comma or newline separated)</label>
+                                <textarea id="ip-watchlist" placeholder="e.g., 192.168.1.100, 8.8.8.8, ..." style="min-height: 60px;"></textarea>
+                            </div>
+                            <div class="btn-group">
+                                <button data-action="run-network"><i class="fas fa-wave-square"></i> Advanced Analysis</button>
+                                <button id="net-ai-btn" class="secondary" data-action="get-network-insights" style="display: none;">✨ Explain Threats with AI</button>
+                                <button class="secondary" data-action="clear-tool-state" data-card="network-card"><i class="fas fa-times-circle"></i> Clear</button>
+                            </div>
+                            <div class="ai-first-look" id="network-ai-look"></div>
+                            <div id="network-output"></div>
+                        </div>
+                    </div>
+                </div>
+                </section>
+                
+                <aside class="sidebar-section">
+                <div class="sidebar-navigator">
+                    <ul class="navigator-list">
+                        <li><a href="#case-notes-card" class="active"><i class="fas fa-pencil-alt"></i> Notes</a></li>
+                        <li><a href="#report-gen-card"><i class="fas fa-file-invoice"></i> Report</a></li>
+                        <li><a href="#coc-card"><i class="fas fa-book"></i> CoC Log</a></li>
+                        <li><a href="#settings-card"><i class="fas fa-cog"></i> Settings</a></li>
+                    </ul>
+                    <button id="single-view-toggle-btn" class="secondary" title="Toggle Single Tool View">
+                        <i class="fas fa-columns"></i>
+                    </button>
+                </div>
+                <div class="sidebar-content-wrapper">
+                    <!-- Case Notes Card -->
+                    <div id="case-notes-card" class="tool-card" style="--card-index: 9;">
+                        <div class="tool-card-content">
+                            <h2><i class="fas fa-pencil-alt"></i> Case Notes</h2>
+                            <div class="input-group" style="padding: 0; border: none; margin-bottom: 0; flex-grow: 1; display: flex; flex-direction: column;">
+                                <label for="case-notes-textarea">Investigator's Notes (auto-saved with case)</label>
+                                <textarea id="case-notes-textarea" placeholder="Enter observations, findings, and next steps here..." style="flex-grow: 1; min-height: 250px;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Report Generation Card -->
+                    <div id="report-gen-card" class="tool-card" data-card-index="10">
+                        <div class="tool-card-content">
+                            <h2><i class="fas fa-file-invoice"></i> Report Generation</h2>
+                            <div class="input-group">
+                                <label for="case-name">Case Name / ID</label>
+                                <input type="text" id="case-name" placeholder="e.g., Case-2025-001">
+                            </div>
+                             <div class="input-group">
+                                <label for="investigator-name">Investigator Name</label>
+                                <input type="text" id="investigator-name" placeholder="John Doe">
+                            </div>
+                            <div class="input-group">
+                                <label for="org-name">Organization Name</label>
+                                <input type="text" id="org-name" placeholder="e.g., Forensic Unit">
+                            </div>
+                            <div class="input-group">
+                                <label for="case-type">Case Type</label>
+                                <input type="text" id="case-type" placeholder="e.g., Data Breach Investigation">
+                            </div>
+                            <div class="toggle-switch">
+                                <label for="court-mode">Courtroom-Ready Mode</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="court-mode">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="btn-group">
+                                <button data-action="export-pdf"><i class="fas fa-file-pdf"></i> Export PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Chain of Custody Card -->
+                    <div id="coc-card" class="tool-card" data-card-index="11">
+                        <div class="tool-card-content">
+                            <div class="card-header">
+                                <h2><i class="fas fa-book"></i> Chain of Custody Log</h2>
+                                <div class="btn-group" style="gap: 0.5rem;">
+                                    <button id="add-coc-entry-btn" class="secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;"><i class="fas fa-plus"></i> Add</button>
+                                    <button id="timeline-view-btn" class="secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;"><i class="fas fa-stream"></i> View</button>
+                                </div>
+                            </div>
+                            <div id="coc-log" class="coc-container"></div>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 1rem; font-style: italic;">
+                                This log is cryptographically secured. All entries are reflected in the final PDF report to ensure a tamper-evident record.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Settings Card -->
+                    <div id="settings-card" class="tool-card" data-card-index="12">
+                        <div class="tool-card-content">
+                            <h2><i class="fas fa-cog"></i> Settings</h2>
+                            <div class="toggle-switch">
+                                <label for="theme-toggle">Light Theme</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="theme-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="toggle-switch" style="margin-top: 1rem;">
+                                <label for="animation-toggle" title="Completely disables the background constellation and cursor trail for maximum performance.">Disable Background Animation</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="animation-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="input-group" style="padding: 0; border: none; margin-top: 1rem;">
+                                <label for="setting-investigator-name">Default Investigator Name</label>
+                                <input type="text" id="setting-investigator-name" placeholder="e.g., John Doe">
+                            </div>
+                            <div class="input-group" style="padding: 0; border: none; margin-top: 1rem;">
+                                <label for="setting-org-name">Default Organization Name</label>
+                                <input type="text" id="setting-org-name" placeholder="Saved to this browser...">
+                            </div>
+                            <div class="btn-group" style="margin-top: 0.75rem;">
+                                <button class="danger-btn" data-action="clear-all-settings"><i class="fas fa-trash-alt"></i> Clear Saved Settings</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-overlay" id="coc-modal">
+        <div class="modal-content">
+            <button class="modal-close" data-action="close-modal" data-modal="coc-modal">×</button>
+            <h3 class="modal-title" id="modal-title"></h3>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="btn-group" style="margin-top: 1.5rem;">
+                <button id="copy-coc-btn" class="secondary"><i class="fas fa-copy"></i> Copy to Clipboard</button>
+                <button id="verify-coc-btn" class="secondary"><i class="fas fa-check-double"></i> Verify Chain Integrity</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline Modal -->
+    <div class="modal-overlay" id="timeline-modal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <button class="modal-close" data-action="close-modal" data-modal="timeline-modal">×</button>
+            <h3 class="modal-title">Chain of Custody Timeline</h3>
+            <div class="modal-body" id="timeline-body">
+                <!-- Timeline will be generated here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Manual CoC Entry Modal -->
+    <div class="modal-overlay" id="add-coc-modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <button class="modal-close" data-action="close-modal" data-modal="add-coc-modal">×</button>
+            <h3 class="modal-title">Add Manual Chain of Custody Entry</h3>
+            <div class="modal-body" id="add-coc-body">
+                <div class="input-group" style="padding:0; border:none;">
+                    <label for="coc-manual-action">Action</label>
+                    <input type="text" id="coc-manual-action" placeholder="e.g., Physical evidence acquired">
+                </div>
+                <div class="input-group" style="padding:0; border:none;">
+                    <label for="coc-manual-target">Target</label>
+                    <input type="text" id="coc-manual-target" placeholder="e.g., USB Drive SN #12345">
+                </div>
+                <div class="input-group" style="padding:0; border:none;">
+                    <label for="coc-manual-details">Details (Optional)</label>
+                    <textarea id="coc-manual-details" placeholder="Any relevant details..." style="min-height: 80px;"></textarea>
+                </div>
+                <div class="input-group" style="padding:0; border:none;"><label for="coc-manual-status">Status / Risk Level</label><select id="coc-manual-status"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div>
+                <div class="btn-group" style="margin-top: 1.5rem;"><button data-action="submit-manual-coc">Add Entry</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forensic Guide Modal -->
+    <div class="modal-overlay" id="guide-modal">
+        <div class="modal-content" style="max-width: 900px; width: 95%;">
+            <button class="modal-close" data-action="close-modal" data-modal="guide-modal">×</button>            <h3 class="modal-title">P.H.A.N.I.X Forensic Guide</h3>
+            <div class="guide-container">
+                <div class="guide-tabs">
+                    <button class="guide-tab-btn active" data-tab="integrity"><i class="fas fa-shield-virus"></i> Integrity Scanner</button>
+                    <button class="guide-tab-btn" data-tab="comparison"><i class="fas fa-exchange-alt"></i> Comparison Tool</button>
+                    <button class="guide-tab-btn" data-tab="metadata"><i class="fas fa-camera-retro"></i> Metadata Analyzer</button>
+                    <button class="guide-tab-btn" data-tab="stego"><i class="fas fa-eye-slash"></i> Steganography</button>
+                    <button class="guide-tab-btn" data-tab="password"><i class="fas fa-key"></i> Password Audit</button>
+                    <button class="guide-tab-btn" data-tab="network"><i class="fas fa-network-wired"></i> Network Logs</button>
+                </div>
+                <div class="guide-content">
+                    <!-- Integrity Scanner Content -->
+                    <div class="guide-tab-content active" id="guide-integrity">
+                        <div class="guide-header">
+                            <h4><i class="fas fa-shield-virus"></i> Integrity Scanner</h4>
+                            <button class="secondary" data-action="highlight-card" data-card="integrity-card"><i class="fas fa-crosshairs"></i> Highlight on Page</button>
+                        </div>
+                        <h5>What It Does</h5>
+                        <p>Calculates unique digital fingerprints (hashes) for any file and checks it for known threats and anomalies like hidden data.</p>
+                        <h5>How to Interpret the Results</h5>
+                        <ul>
+                            <li><strong>Cryptographic Hashes (MD5, SHA-1, SHA-256):</strong> These are unique IDs for the file's content. If even one bit of the file changes, these hashes will change completely. This is the core of verifying file integrity. SHA-256 is the current industry standard.</li>
+                            <li><strong>Threat Intelligence Analysis:</strong> The file's SHA-256 hash is checked against an internal database of known malware signatures. A "match" is a definitive indicator that the file is a known threat.</li>
+                            <li><strong>Entropy Analysis:</strong> Entropy measures randomness on a scale of 0 (total order) to 8.0 (total randomness).
+                                <ul>
+                                    <li><strong>High Entropy (&gt; 7.5):</strong> Common for compressed files (ZIP, JPG) or encrypted data. If the file type is not typically compressed (like a TXT or EXE), high entropy is a strong indicator of encryption or packing, which can be used to hide malware.</li>
+                                    <li><strong>Low Entropy (&lt; 6.0):</strong> Common for uncompressed text or files with lots of repeating data.</li>
+                                </ul>
+                            </li>
+                             <li><strong>File Carving:</strong> This feature scans the entire file for the "magic numbers" (headers) of other file types. This can uncover files that have been hidden inside another file (e.g., a JPG image appended to the end of a DOCX document).</li>
+                        </ul>
+                    </div>
+                    <!-- Comparison Tool Content -->
+                    <div class="guide-tab-content" id="guide-comparison">
+                        <div class="guide-header">
+                            <h4><i class="fas fa-exchange-alt"></i> Comparison Tool</h4>
+                            <button class="secondary" data-action="highlight-card" data-card="comparison-card"><i class="fas fa-crosshairs"></i> Highlight on Page</button>
+                        </div>
+                        <h5>What It Does</h5>
+                        <p>Performs a deep, byte-by-byte comparison of two files to determine if they are different, and if so, where the differences lie.</p>
+                        <h5>How to Interpret the Results</h5>
+                        <ul>
+                            <li><strong>Identical / Different Status:</strong> This is based on a cryptographic hash comparison. If the SHA-256 hashes match, the files are 100% identical.</li>
+                            <li><strong>Diff Map:</strong> This is a powerful visual tool. It represents the entire file as a grid. Each block in the grid corresponds to a section of the file.
+                                <ul>
+                                    <li><span style="color: var(--diff-color);">■</span> Red blocks indicate that the data in that section is <strong>different</strong> between the two files.</li>
+                                    <li><span style="color: var(--border-color);">■</span> Faint blocks indicate the data is <strong>identical</strong> in that section.</li>
+                                </ul>
+                                This map allows you to see at a glance how much of a file has changed and in what location (e.g., changes only at the beginning, end, or scattered throughout).
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Metadata Analyzer Content -->
+                    <div class="guide-tab-content" id="guide-metadata">
+                        <div class="guide-header">
+                            <h4><i class="fas fa-camera-retro"></i> Metadata Analyzer</h4>
+                            <button class="secondary" data-action="highlight-card" data-card="metadata-card"><i class="fas fa-crosshairs"></i> Highlight on Page</button>
+                        </div>
+                        <h5>What It Does</h5>
+                        <p>Extracts hidden information (metadata) embedded within files, particularly images, videos, and documents.</p>
+                        <h5>How to Interpret the Results</h5>
+                        <ul>
+                            <li><strong>Key Forensic Findings:</strong> This box highlights the most forensically relevant data points for quick assessment.</li>
+                            <li><strong>GPS Coordinates:</strong> If present, this is a critical finding, showing the precise latitude and longitude where a photo or video was taken. The tool displays this on an interactive map.</li>
+                            <li><strong>Timestamp (DateTimeOriginal):</strong> This is often the exact date and time a photo was captured, which can be crucial for building a timeline of events.</li>
+                            <li><strong>Software / Device:</strong> This can reveal the camera model (e.g., "iPhone 14 Pro") or the software used to create or edit the file (e.g., "Adobe Photoshop"). This helps in attributing the file's origin.</li>
+                        </ul>
+                    </div>
+                    <!-- Steganography Analyzer Content -->
+                    <div class="guide-tab-content" id="guide-stego">
+                        <div class="guide-header">
+                            <h4><i class="fas fa-eye-slash"></i> Steganography</h4>
+                            <button class="secondary" data-action="highlight-card" data-card="stego-card"><i class="fas fa-crosshairs"></i> Highlight on Page</button>
+                        </div>
+                        <h5>What It Does</h5>
+                        <p>Looks for data that may be concealed within an image using a common technique called LSB (Least Significant Bit) steganography.</p>
+                        <h5>How to Interpret the Results</h5>
+                        <ul>
+                            <li><strong>Bit Plane:</strong> An image is made of color channels (Red, Green, Blue, Alpha). Each color's value is a number from 0-255, which is 8 bits of data. This tool isolates a single "bit plane" (e.g., all the 1st bits, or all the 8th bits) across one channel.</li>
+                            <li><strong>Bit Plane Entropy:</strong> This is the key indicator. A bit plane from a normal, un-tampered image should have very low, non-random entropy. If the entropy is very high (close to 1.0), it means the data in that plane is highly random. This is a strong sign that encrypted or compressed data has been hidden there.</li>
+                            <li><strong>Visual Preview:</strong> The black and white image shows you what the isolated bit plane looks like. A normal plane might show a faint outline of the original image. A plane containing hidden data will often look like random TV static.</li>
+                        </ul>
+                    </div>
+                    <!-- Password Audit Content -->
+                    <div class="guide-tab-content" id="guide-password">
+                        <div class="guide-header">
+                            <h4><i class="fas fa-key"></i> Password Audit</h4>
+                            <button class="secondary" data-action="highlight-card" data-card="password-card"><i class="fas fa-crosshairs"></i> Highlight on Page</button>
+                        </div>
+                        <h5>What It Does</h5>
+                        <p>Measures the objective strength of a password against modern cracking techniques.</p>
+                        <h5>How to Interpret the Results</h5>
+                        <ul>
+                            <li><strong>Password Entropy (bits):</strong> This is the most important metric. It measures the password's unpredictability. Higher is exponentially better.
+                                <ul>
+                                    <li><strong>&lt; 40 bits:</strong> Very Weak</li>
+                                    <li><strong>40-60 bits:</strong> Weak</li>
+                                    <li><strong>60-80 bits:</strong> Moderate</li>
+                                    <li><strong>80-100 bits:</strong> Strong</li>
+                                    <li><strong>&gt; 100 bits:</strong> Very Strong</li>
+                                </ul>
+                            </li>
+                            <li><strong>Estimated Crack Time:</strong> This translates entropy into a practical, real-world metric. It's an estimate of how long it would take a powerful cracking rig (capable of billions of guesses per second) to find the password.</li>
+                            <li><strong>Recommendations:</strong> The tool provides simple, actionable advice based on what the password lacks (e.g., "Add symbols," "Increase length").</li>
+                        </ul>
+                    </div>
+                    <!-- Network Log Analyzer Content -->
+                    <div class="guide-tab-content" id="guide-network">
+                        <div class="guide-header">
+                            <h4><i class="fas fa-network-wired"></i> Network Log Analyzer</h4>
+                            <button class="secondary" data-action="highlight-card" data-card="network-card"><i class="fas fa-crosshairs"></i> Highlight on Page</button>
+                        </div>
+                        <h5>What It Does</h5>
+                        <p>Scans raw system or network logs, intelligently connecting individual lines to identify sophisticated, multi-step threats.</p>
+                        <h5>How to Interpret the Results</h5>
+                        <ul>
+                            <li><strong>Correlated Threats:</strong> This is the core of the tool. It doesn't just find single bad lines; it understands context. For example, it will see 20 failed logins followed by one successful login from the same IP and flag it as a "Brute-Force Attack (Successful)", which is far more critical than 20 failed logins alone.</li>
+                            <li><strong>Threat Score & Level:</strong> A calculated score that represents the overall risk level of the entire log file. This helps you prioritize investigations. A "CRITICAL" level indicates an active, successful compromise is likely.</li>
+                            <li><strong>IP Watchlist:</strong> This allows you to provide your own list of known-bad IP addresses. The tool will then flag any and all activity from these IPs as a CRITICAL threat, making it easy to spot repeat offenders or track specific actors.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Toast Notification Container -->
+    <div id="toast-container"></div>
+    <section class="detailed-info-section">
+        <div class="detailed-info-wrapper reveal-on-scroll">
+            <h2 class="gradient-heading">About P.H.A.N.I.X</h2>
+            <p class="intro-paragraph">A closer look at the mission, features, and design philosophy behind this forensic suite.</p>
+            
+            <h3 class="reveal-on-scroll" style="--reveal-delay: 100ms;">Our Mission</h3>
+            <p class="mission-text reveal-on-scroll" style="--reveal-delay: 150ms;">P.H.A.N.I.X was born from a simple yet powerful idea: to democratize digital forensics. We believe that powerful analysis tools should be accessible, secure, and transparent. Our core philosophy is built on <strong>client-side processing</strong>, meaning every calculation, every analysis, and every byte of your sensitive data remains exclusively on your computer. There are no server uploads, no hidden data collection, and no complex installations required. This approach not only guarantees absolute privacy but also makes sophisticated forensic techniques available to anyone with a web browser, from students learning the trade to professionals in the field conducting initial assessments.</p>
+
+            <h3 class="reveal-on-scroll" style="--reveal-delay: 200ms;">Privacy by Design</h3>
+            <p class="mission-text reveal-on-scroll" style="--reveal-delay: 250ms;">Your privacy is not an afterthought; it is the foundation of this suite. Here is our commitment to you:</p>
+            <ul class="feature-list" style="margin-top: 1.5rem;">
+                <li class="reveal-on-scroll" style="--reveal-delay: 300ms;"><i class="fas fa-server"></i><div><h4>Zero Data Transmission</h4><p>All files you select and data you paste are processed locally within your browser. Nothing is ever sent to, or stored on, any external server. Your evidence remains your own.</p></div></li>
+                <li class="reveal-on-scroll" style="--reveal-delay: 350ms;"><i class="fas fa-cookie-bite"></i><div><h4>No Tracking Cookies</h4><p>This tool does not use tracking cookies or third-party analytics that monitor your behavior. Settings are stored in your browser's `localStorage`, which you control and can clear at any time.</p></div></li>
+                <li class="reveal-on-scroll" style="--reveal-delay: 400ms;"><i class="fas fa-code"></i><div><h4>Open and Verifiable</h4><p>As a single-file HTML application, the entire source code is visible and can be audited by anyone. You can save the page and run it offline to verify its client-side nature.</p></div></li>
+            </ul>
+
+            <h3 class="reveal-on-scroll" style="--reveal-delay: 450ms;">Support & Contact</h3>
+            <p class="mission-text reveal-on-scroll" style="--reveal-delay: 500ms;">
+                For questions, bug reports, or feature suggestions, please feel free to reach out. Your feedback is valuable for the continued improvement of this suite.
+                <br><br>
+                <strong>Contact:</strong> <a href="mailto:nittalaphaneendhar@gmail.com" class="support-email-link"><i class="fas fa-envelope"></i> nittalaphaneendhar@gmail.com</a>
+            </p>
+
+            <h3 class="reveal-on-scroll" style="--reveal-delay: 550ms;">Important Notice & Terms of Use</h3>
+            <p class="mission-text reveal-on-scroll" style="--reveal-delay: 600ms;">This tool is developed for educational and professional assessment purposes. For any serious or legal investigations, findings must be verified with judicially validated forensic tools. Always consult a certified digital forensics professional for official case work. By using this tool, you acknowledge its purpose and agree that the developer is not liable for any misuse or conclusions drawn from its results. You are responsible for your own actions and for complying with all applicable laws.</p>
+
+        </div>
+    </section>
+    <script src="script.js" defer></script>
+</body>
+</html>
+ 

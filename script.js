@@ -932,10 +932,51 @@ function generateHash() {
                 let entropy = 0;
                 for (const freq of frequencies) { if (freq > 0) { const p = freq / file.size; entropy -= p * Math.log2(p); } }
 
-                const threatInfo = threatDatabase[hashes.sha256];
-                const isMalicious = !!threatInfo;
+                // --- HYBRID DETECTION: Hash + Heuristics ---
+                const threatInfo = threatDatabase[hashes.sha256]; // exact-match intel
+                // Heuristic scoring rules:
+                // +100 if hash matches threatDatabase.
+                // +20 if entropy > 7.6.
+                // +15 if fileType includes "Windows PE file".
+                // +10 if Windows PE file size < 150KB.
+                let riskScore = 0;
+                let riskReasons = [];
 
-                self.postMessage({ type: 'result', data: { file, hashes, entropy, frequencies, blockEntropies, plotBlockSize, fileType, hexViewBytes, isMalicious, threatInfo } });
+                if (threatInfo) {
+                    riskScore += 100;
+                    riskReasons.push(\`Hash match: \${threatInfo}\`);
+                }
+
+                if (entropy > 7.6) {
+                    riskScore += 20;
+                    riskReasons.push('High entropy (> 7.6)');
+                }
+
+                if (fileType.includes('Windows PE')) {
+                    riskScore += 15;
+                    riskReasons.push('Identified as Windows PE file');
+                    if (file.size < 150 * 1024) {
+                        riskScore += 10;
+                        riskReasons.push('PE file is small (< 150 KB)');
+                    }
+                }
+
+                const isMalicious = riskScore >= 100;
+                const isSuspicious = (riskScore >= 25 && riskScore < 100);
+
+                self.postMessage({
+                    type: 'result',
+                    data: {
+                        file, hashes, entropy, frequencies, blockEntropies, plotBlockSize, fileType, hexViewBytes,
+                        // Preserve original intel value too
+                        threatInfo,
+                        // Hybrid results
+                        isMalicious,
+                        isSuspicious,
+                        riskScore,
+                        riskReasons
+                    }
+                });
                 self.close();
             };
         `;
@@ -949,16 +990,49 @@ function generateHash() {
                 progressBar.style.width = `${value}%`;
             } else if (type === 'result') {
                 progressBar.style.width = '100%';
-                const { file, hashes, entropy, frequencies, blockEntropies, plotBlockSize, fileType, hexViewBytes, isMalicious, threatInfo } = data;
-                
+                const {
+                    file, hashes, entropy, frequencies, blockEntropies, plotBlockSize, fileType, hexViewBytes,
+                    threatInfo, isMalicious, isSuspicious, riskScore, riskReasons
+                } = data;
+
                 let resultHTML = `--- File Integrity & Threat Report ---\nFilename:      ${sanitizeHTML(file.name)}\nFile Size:     ${(file.size / 1024).toFixed(2)} KB\nIdentified Type: ${sanitizeHTML(fileType)}\n\n--- Cryptographic Hashes ---\n`;
-                
+
                 resultHTML += `MD5:    ${hashes.md5}<button class="copy-btn" title="Copy MD5" onclick="copyToClipboard('${hashes.md5}', this)"><i class="fas fa-copy"></i></button>\n`;
                 resultHTML += `SHA-1:  ${hashes.sha1}<button class="copy-btn" title="Copy SHA-1" onclick="copyToClipboard('${hashes.sha1}', this)"><i class="fas fa-copy"></i></button>\n`;
                 resultHTML += `SHA-256: <span class="info">${hashes.sha256}</span><button class="copy-btn" title="Copy SHA-256" onclick="copyToClipboard('${hashes.sha256}', this)"><i class="fas fa-copy"></i></button>\n\n`;
 
+                // Render hybrid threat status
                 resultHTML += `--- Threat Intelligence Analysis ---\n`;
-                resultHTML += isMalicious ? `Status: <span class="danger">KNOWN THREAT DETECTED</span>\nMatch:  ${sanitizeHTML(threatInfo)}\n\n` : `Status: <span class="success">No known threats found in database.</span>\n\n`;
+                if (isMalicious) {
+                    resultHTML += `Status: <span class="danger">KNOWN MALWARE DETECTED</span>\n`;
+                    if (threatInfo) {
+                        resultHTML += `Match:  ${sanitizeHTML(threatInfo)}\n`;
+                    }
+                    resultHTML += `Risk Score: ${riskScore}\n`;
+                    if (riskReasons && riskReasons.length > 0) {
+                        resultHTML += `Reasons:\n`;
+                        riskReasons.forEach(r => { resultHTML += ` - ${sanitizeHTML(r)}\n`; });
+                    }
+                    resultHTML += `\n`;
+                } else if (isSuspicious) {
+                    resultHTML += `Status: <span class="warning">SUSPICIOUS FILE (Heuristic Detection)</span>\n`;
+                    resultHTML += `Risk Score: ${riskScore}\n`;
+                    if (riskReasons && riskReasons.length > 0) {
+                        resultHTML += `Reasons:\n`;
+                        riskReasons.forEach(r => { resultHTML += ` - ${sanitizeHTML(r)}\n`; });
+                    }
+                    resultHTML += `\n`;
+                } else {
+                    resultHTML += `Status: <span class="success">No immediate threats detected</span>\n`;
+                    resultHTML += `Risk Score: ${riskScore}\n`;
+                    if (riskReasons && riskReasons.length > 0) {
+                        resultHTML += `Reasons (low impact):\n`;
+                        riskReasons.forEach(r => { resultHTML += ` - ${sanitizeHTML(r)}\n`; });
+                        resultHTML += `\n`;
+                    } else {
+                        resultHTML += `\n`;
+                    }
+                }
 
                 let entropyAssessment, entropyColor, entropyInterpretation;
                 const isCompressedType = fileType.includes('JPEG') || fileType.includes('PNG') || fileType.includes('GIF') || fileType.includes('ZIP');
@@ -971,19 +1045,43 @@ function generateHash() {
                 }
                 resultHTML += `--- Entropy Analysis ---\nShannon Entropy (Overall): ${entropy.toFixed(4)} / 8.0\nAssessment:              <span class="${entropyColor}">${entropyAssessment}</span>\n\n<div class="interpretation"><strong>Interpretation:</strong> ${entropyInterpretation} <a href="#" onclick="toggleHexViewer(event)" class="show-more-link">Show Raw Hex View</a></div>`;
 
-                output.innerHTML = resultHTML.replace(/<button class="copy-btn".*?<\/button>/g, ''); // Remove buttons before inserting
+                // Insert the non-button HTML (used earlier to avoid event re-attachment issues)
+                output.innerHTML = resultHTML.replace(/<button class="copy-btn".*?<\/button>/g, '');
                 renderHexView(hexViewBytes);
                 renderEntropyChart(frequencies);
                 renderEntropyPlotChart(blockEntropies, plotBlockSize);
                 const maxBlockEntropy = Math.max(...blockEntropies);
                 const minBlockEntropy = Math.min(...blockEntropies);
 
-                analysisResults.fileHash = { fileName: file.name, hashes, isMalicious, threatName: threatInfo || 'N/A', entropy, fileType, fileSize: file.size, blockEntropy: { min: minBlockEntropy, max: maxBlockEntropy, average: blockEntropies.reduce((a, b) => a + b, 0) / blockEntropies.length }, entropyAssessment };
-                addCoCEntry('File Threat Scan', file.name, isMalicious ? 'high' : 'low', `Scan complete. Threat status: ${isMalicious ? 'Positive' : 'Negative'}. Entropy: ${entropy.toFixed(2)}`, 'auto');
-                
+                // Store updated hybrid results in analysisResults (preserve previous fields)
+                analysisResults.fileHash = {
+                    fileName: file.name,
+                    hashes,
+                    // Keep original threat name if present
+                    threatName: threatInfo || 'N/A',
+                    entropy,
+                    fileType,
+                    fileSize: file.size,
+                    blockEntropy: { min: minBlockEntropy, max: maxBlockEntropy, average: blockEntropies.reduce((a, b) => a + b, 0) / blockEntropies.length },
+                    entropyAssessment,
+                    // Hybrid-specific fields:
+                    riskScore,
+                    riskReasons,
+                    isMalicious,
+                    isSuspicious
+                };
+
+                // Severity chosen using hybrid result
+                addCoCEntry('File Threat Scan', file.name, isMalicious ? 'high' : (isSuspicious ? 'medium' : 'low'),
+                    `Scan complete. Hybrid threat status: ${isMalicious ? 'Malicious' : (isSuspicious ? 'Suspicious' : 'No immediate threat')}. Entropy: ${entropy.toFixed(2)}`, 'auto');
+
                 // Now that the HTML is in the DOM, re-insert buttons and attach listeners
                 output.innerHTML = resultHTML;
                 output.querySelectorAll('.copy-btn').forEach(btn => {
+                    // Extract the hash string from the button's onclick attribute (safe because we control content)
+                    const onclick = btn.getAttribute('onclick') || '';
+                    const match = onclick.match(/copyToClipboard\\('([^']+)'/);
+                    if (match) btn.dataset.copy = match[1];
                     btn.addEventListener('click', () => {
                         copyToClipboard(btn.dataset.copy, btn);
                     });
@@ -2709,4 +2807,5 @@ document.addEventListener('mousemove', (e) => {
         const moveY = (e.clientY / window.innerHeight - 0.5) * 20;
         grid.style.transform = `translate(${moveX}px, ${moveY}px)`;
     }
+
 });

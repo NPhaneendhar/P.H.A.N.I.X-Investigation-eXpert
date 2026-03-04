@@ -2506,6 +2506,20 @@ async function analyzePassword() {
     } else {
         resultHTML += `<div class="password-recommendations"><h4>Recommendations</h4><ul><li class="good-practice">This is a strong password. No immediate recommendations.</li></ul></div>`;
     }
+
+    // NEW: Security Awareness Section
+    resultHTML += `
+        <div class="interpretation" style="margin-top: 1rem;">
+            <strong><i class="fas fa-user-shield"></i> Security Awareness: How Passwords Are Cracked</strong>
+            <ul style="margin-top: 0.5rem; padding-left: 1.5rem; font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
+                <li><strong>Brute-Force:</strong> Attackers systematically try every possible combination of characters until they find the match. (Entropy makes this exponentially harder).</li>
+                <li><strong>Dictionary Attacks:</strong> Trying millions of common words, phrases, and leaked passwords from massive databases. (Complex passwords defeat this).</li>
+                <li><strong>Credential Stuffing:</strong> Using passwords leaked from one website breach to try logging into other sites. (Unique passwords prevent this).</li>
+                <li><strong>Phishing:</strong> Tricking you into simply typing your password into a fake login screen. (No password complexity protects against this!).</li>
+            </ul>
+        </div>
+    `;
+
     output.innerHTML = resultHTML;
     
     analysisResults.password = { timeToCrack, strength: scoreData.strengthText, entropyBits: entropy.toFixed(2), suggestions: scoreData.suggestions };
@@ -2580,7 +2594,8 @@ function formatTime(seconds) {
 // --- ADVANCED NETWORK LOG ANALYZER ---
 async function analyzeNetworkAdvanced() {
     const input = document.getElementById('network-input').value;
-    const watchlistInput = document.getElementById('ip-watchlist').value;
+    const watchlistElement = document.getElementById('ip-watchlist');
+    const watchlistInput = watchlistElement ? watchlistElement.value : '';
     const output = document.getElementById('network-output');
     const aiBtn = document.getElementById('net-ai-btn');
     aiBtn.style.display = 'none';
@@ -2607,17 +2622,23 @@ async function analyzeNetworkAdvanced() {
         'Successful Login': { pattern: /accepted password for (\S+)/i, score: 0, type: 'auth_success', extracts: { user: 1, ip: /from (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
         'SSH Login': { pattern: /accepted publickey for (\S+)/i, score: 0, type: 'auth_success', extracts: { user: 1, ip: /from (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
         'Sudo Command': { pattern: /sudo:\s*(\S+)\s*: TTY=.* PWD=.* USER=root COMMAND=(.*)/i, score: 6, type: 'priv_esc', extracts: { user: 1, command: 2 } },
-        'SQL Injection Attempt': { pattern: sqlInjectionPattern, score: 10, type: 'web_attack' },
-        'Directory Traversal': { pattern: /(\.\.\/|\.\.\\|etc\/passwd)/i, score: 10, type: 'web_attack' },
-        'Suspicious User Agent': { pattern: /" (curl|wget|python|nmap|sqlmap|masscan)/i, score: 4, type: 'recon' },
-        'Web Error': { pattern: /" (404|403|500) \d+/i, score: 1, type: 'web_error' },
-        'PowerShell Download': { pattern: /powershell .*?(downloadstring|frombase64string|iex|iwr|invoke-webrequest)/i, score: 8, type: 'exec' },
+        'SQL Injection Attempt': { pattern: sqlInjectionPattern, score: 10, type: 'web_attack', extracts: { ip: /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
+        'Directory Traversal': { pattern: /(\.\.\/|\.\.\\|etc\/passwd|boot\.ini|win\.ini)/i, score: 10, type: 'web_attack', extracts: { ip: /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
+        'Cross-Site Scripting (XSS)': { pattern: /(<script>|%3Cscript%3E|javascript:|onerror=|onload=)/i, score: 8, type: 'web_attack', extracts: { ip: /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
+        'Local/Remote File Inclusion': { pattern: /(php:\/\/filter|data:\/\/|expect:\/\/|file:\/\/|\/proc\/self\/environ)/i, score: 9, type: 'web_attack', extracts: { ip: /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
+        'Suspicious User Agent': { pattern: /" (curl|wget|python|nmap|sqlmap|masscan|nikto|dirb|gobuster|hydra|medusa|wfuzz|burpsuite)/i, score: 4, type: 'recon', extracts: { ip: /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
+        'Web Error': { pattern: /" (404|403|500) \d+/i, score: 1, type: 'web_error', extracts: { ip: /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
+        'PowerShell Download': { pattern: /powershell .*?(downloadstring|frombase64string|iex|iwr|invoke-webrequest)/i, score: 8, type: 'exec', extracts: { ip: /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
         'Base64 in Command': { pattern: /[A-Za-z0-9+\/]{40,}={0,2}/, score: 5, type: 'exec' },
         'Certutil Fetch': { pattern: /certutil .*?-urlcache.*?-split/i, score: 7, type: 'exec' },
         'Curl/Wget Fetch': { pattern: /\b(curl|wget)\b .*http/i, score: 4, type: 'exec' },
-        'Command Injection': { pattern: /(;|\|\||\&\&)(\s*)?(ls|cat|wget|curl|chmod|chown|whoami|powershell|certutil)/i, score: 7, type: 'web' },
-        'Privilege Escalation Keyword': { pattern: /(setuid|setgid|sudo su|adduser .*sudo|chmod 777)/i, score: 5, type: 'priv_esc' },
-        'Port Scan Indicator': { pattern: /(nmap|masscan|zenmap|portsweep|syn scan)/i, score: 4, type: 'recon' }
+        'Command Injection': { pattern: /(;|\|\||\&\&)(\s*)?(ls|cat|wget|curl|chmod|chown|whoami|powershell|certutil)/i, score: 7, type: 'web_attack' },
+        'Privilege Escalation Keyword': { pattern: /(setuid|setgid|sudo su|adduser .*sudo|chmod 777|usermod -aG)/i, score: 5, type: 'priv_esc' },
+        'Port Scan Indicator': { pattern: /(nmap|masscan|zenmap|portsweep|syn scan)/i, score: 4, type: 'recon', extracts: { ip: /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
+        'Data Exfiltration': { pattern: /(scp|rsync|sftp|nc|netcat) .*(temp|tmp|var\/log|home)/i, score: 8, type: 'exfil', extracts: { ip: /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
+        'Reverse Shell Activity': { pattern: /(bash -i|nc -e|sh -i|dev\/tcp\/)/i, score: 10, type: 'exec' },
+        'Malicious File Extension': { pattern: /\.(sh|bash|py|pl|php|exe|dll|jsp|asp|aspx)\s+HTTP/i, score: 6, type: 'web_attack', extracts: { ip: /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/ } },
+        'CRON Job Alteration': { pattern: /(crontab -e|echo .*>>.*cron|systemctl enable)/i, score: 6, type: 'persist' }
     };
 
     let events = [];
@@ -2672,6 +2693,38 @@ async function analyzeNetworkAdvanced() {
                 name: 'Suspicious Post-Login Activity',
                 risk: 'High', score: 20,
                 details: `User '${login.user}' logged in from ${login.ip || 'unknown IP'} and then executed ${subsequentCommands.length} privileged command(s), starting with: ${subsequentCommands[0].command}`
+            });
+        }
+    }
+
+    // Multiple Web Attacks from same IP
+    const webAttacks = events.filter(e => e.type === 'web_attack' || e.type === 'recon' || e.type === 'exec');
+    const attacksByIp = webAttacks.reduce((acc, e) => {
+        if (e.ip) acc[e.ip] = (acc[e.ip] || 0) + 1;
+        return acc;
+    }, {});
+    for (const [ip, count] of Object.entries(attacksByIp)) {
+        if (count >= 5) {
+            threats.push({
+                name: 'Web Attack / Recon Flood',
+                risk: 'CRITICAL', score: 25,
+                details: `Detected ${count} malicious requests (e.g., LFI, SQLi, XSS, Scanner) originating from IP ${ip}. Possible automated attack or enumeration.`
+            });
+        }
+    }
+
+    // High number of web errors from same IP
+    const webErrors = events.filter(e => e.type === 'web_error');
+    const errorsByIp = webErrors.reduce((acc, e) => {
+        if (e.ip) acc[e.ip] = (acc[e.ip] || 0) + 1;
+        return acc;
+    }, {});
+    for (const [ip, count] of Object.entries(errorsByIp)) {
+        if (count >= 20) {
+            threats.push({
+                name: 'Directory Brute Forcing / Scanner',
+                risk: 'High', score: 18,
+                details: `Detected ${count} web errors (403, 404, 500) from IP ${ip}. Indicative of traversal probing or vulnerability scanning.`
             });
         }
     }

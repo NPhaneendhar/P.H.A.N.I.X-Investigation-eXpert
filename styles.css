@@ -168,6 +168,31 @@ body.light-theme {
 html { 
     scroll-behavior: smooth;
     background-color: var(--primary-bg);
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    scrollbar-gutter: stable;
+    scroll-padding-top: 80px; /* Adjust based on header height */
+}
+
+/* Custom Premium Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--apple-black);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--apple-gray-700);
+    border-radius: 10px;
+    border: 2px solid var(--apple-black);
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--apple-blue);
 }
 
 body {
@@ -246,6 +271,12 @@ h1, h2, h3, h4 {
     overflow: hidden;
     padding: 2rem;
     box-shadow: var(--shadow-premium);
+    /* Performance optimizations for butter-smooth scrolling */
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 400px;
+    transform: translateZ(0); /* Trigger GPU acceleration */
+    backface-visibility: hidden;
+    will-change: transform, opacity;
 }
 
 /* Ecosystem Section Styles */
@@ -635,6 +666,7 @@ button.secondary:hover, .btn-secondary:hover {
     filter: blur(80px);
     opacity: 0.6;
     animation: meshFlow 20s ease-in-out infinite alternate;
+    will-change: transform, opacity;
 }
 
 @keyframes meshFlow {
